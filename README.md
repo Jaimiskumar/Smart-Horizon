@@ -149,3 +149,4 @@ For more detailed information on specific features and setup, please refer to th
 ---
 
 > Hand-crafted layout components built specially for robust municipal oversight!
+# Smart-Horizon

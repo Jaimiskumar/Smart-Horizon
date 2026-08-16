@@ -5,14 +5,21 @@ import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
+import urbanflowRoutes from './routes/urbanflow.js';
+import bangaloreRoutes from './routes/bangaloreRoutes.js';
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: { origin: '*' }
 });
+app.set('io', io);
 
 app.use(cors());
 app.use(express.json());
+app.use('/api/urbanflow', urbanflowRoutes);
+app.use('/api/bangalore', bangaloreRoutes);
+
 
 // In-memory data storage
 const users = [
@@ -1024,7 +1031,8 @@ startEncroachmentSimulation();
 startIllegalParkingDetection();
 
 const PORT = 5000;
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, '127.0.0.1', () => {
   console.log(`🚦 Server running on port ${PORT}`);
   console.log('✅ Using in-memory storage (no MongoDB required)');
 });
+

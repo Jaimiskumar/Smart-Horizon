@@ -75,7 +75,7 @@ export default function ParkingManagement() {
     fetchViolations();
     fetchStats();
     
-    const socket = io('http://localhost:5000');
+    const socket = io();
     
     socket.on('illegal-parking-detected', () => {
       fetchViolations();

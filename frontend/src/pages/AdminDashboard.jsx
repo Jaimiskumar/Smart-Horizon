@@ -11,7 +11,8 @@ import IllegalParkingDetection from '../components/admin/IllegalParkingDetection
 import AIAgentCenter from '../components/admin/AIAgentCenter';
 import MLDetectionUpload from '../components/admin/MLDetectionUpload';
 import DailyReports from '../components/admin/DailyReports';
-import { Bot, FileBarChart } from 'lucide-react';
+import BangaloreTrafficMap from '../components/admin/BangaloreTrafficMap';
+import { Bot, FileBarChart, Map as MapIcon } from 'lucide-react';
 
 export default function AdminDashboard({ user, onLogout }) {
   const location = useLocation();
@@ -24,6 +25,7 @@ export default function AdminDashboard({ user, onLogout }) {
   }, [location]);
 
   const tabs = [
+    { id: 'bangalore-map', label: 'Bangalore Traffic Map', icon: MapIcon, path: '/admin/bangalore-map', color: 'blue' },
     { id: 'traffic', label: 'Traffic Monitoring', icon: Car, path: '/admin/traffic', color: 'blue' },
     { id: 'parking', label: 'Parking Management', icon: ParkingCircle, path: '/admin/parking', color: 'green' },
     { id: 'violations', label: 'Violations', icon: AlertTriangle, path: '/admin/violations', color: 'orange' },
@@ -135,7 +137,8 @@ export default function AdminDashboard({ user, onLogout }) {
         <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 relative">
           <div className="animate-fade-in max-w-7xl mx-auto pb-20 lg:pb-0">
             <Routes>
-              <Route path="/" element={<TrafficMonitoring />} />
+              <Route path="/" element={<BangaloreTrafficMap />} />
+              <Route path="/bangalore-map" element={<BangaloreTrafficMap />} />
               <Route path="/traffic" element={<TrafficMonitoring />} />
               <Route path="/parking" element={<ParkingManagement />} />
               <Route path="/violations" element={<ViolationManagement />} />

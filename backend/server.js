@@ -25,6 +25,8 @@ import challanRoutes from './routes/challanRoutes.js';
 import adminReportsRoutes from './routes/adminReports.js';
 import emergencyVehicleRoutes from './routes/emergencyRoutes.js';
 import parkingAmenitiesRoutes from './routes/parkingAmenities.js';
+import urbanflowRoutes from './routes/urbanflow.js';
+import bangaloreRoutes from './routes/bangaloreRoutes.js';
 import { initializeTrafficSimulation } from './services/trafficSimulator.js';
 import User from './models/User.js';
 import { env } from './config/env.js';
@@ -34,6 +36,7 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: { origin: env.CORS_ORIGIN }
 });
+app.set('io', io);
 
 const corsOptions = {
   origin: env.CORS_ORIGIN === '*' ? true : env.CORS_ORIGIN.split(',').map((item) => item.trim())
@@ -130,6 +133,12 @@ app.use('/api/admin-reports', adminReportsRoutes);
 // Emergency vehicle detection and green corridor management
 app.use('/api/emergency-vehicles', emergencyVehicleRoutes);
 
+// UrbanFlow Multi-Agent AI Engine Integration
+app.use('/api/urbanflow', urbanflowRoutes);
+
+// Bangalore Geospatial Intelligence Layer
+app.use('/api/bangalore', bangaloreRoutes);
+
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
 
@@ -154,7 +163,7 @@ async function startServer() {
   await seedDefaultUsers();
   await initializeTrafficSimulation(io);
 
-  httpServer.listen(env.PORT, () => {
+  httpServer.listen(env.PORT, '127.0.0.1', () => {
     console.log(`====================================================`);
     console.log(`🚀 SOLAPUR SMART CITY SERVER RUNNING ON PORT ${env.PORT}`);
     console.log(`📡 REAL-TIME SOCKET.IO ENGINE: [ONLINE]`);
@@ -162,6 +171,7 @@ async function startServer() {
     console.log(`🌍 CITY TRAFFIC SIMULATION: [LOADED]`);
     console.log(`====================================================`);
   });
+
 }
 
 startServer().catch((error) => {

@@ -1,0 +1,69 @@
+═══════════════════════════════════════════════════════════════
+  QUICK IMAGE SETUP - Hawker Detection Feed
+═══════════════════════════════════════════════════════════════
+
+STEP 1: Save Your Images
+-------------------------
+Take the two hawker images you have and save them as:
+  • hawker1.jpg  (street vendors with colorful umbrellas)
+  • hawker2.jpg  (crowded street market with vendors)
+
+
+STEP 2: Place Images in Correct Folder
+---------------------------------------
+Copy/Move the images to:
+
+  Smart-traffic-and-parking-management-system/
+    └── frontend/
+        └── public/
+            └── images/
+                └── encroachment/
+                    ├── hawker1.jpg  ← PUT HERE
+                    └── hawker2.jpg  ← PUT HERE
+
+
+STEP 3: Delete Placeholder Files
+---------------------------------
+Delete the existing text files with same names:
+  • Delete: hawker1.jpg (text file)
+  • Delete: hawker2.jpg (text file)
+
+
+STEP 4: Restart Backend Server
+-------------------------------
+In your terminal:
+  cd backend
+  node server-standalone.js
+
+
+STEP 5: View Results
+--------------------
+1. Open browser: http://localhost:3000
+2. Login as admin (admin@traffic.gov / admin123)
+3. Click "Encroachment Monitor" tab
+4. You should see your images in the camera feed!
+
+
+═══════════════════════════════════════════════════════════════
+  THAT'S IT! Your images are now integrated.
+═══════════════════════════════════════════════════════════════
+
+WHAT YOU'LL SEE:
+• Each encroachment card shows a camera feed image
+• Images appear on the left side of each card
+• Camera ID badge overlays the image
+• Severity level badge on top-right of image
+• Professional layout with image + details
+
+
+TROUBLESHOOTING:
+• Images not showing? Check file names are exactly: hawker1.jpg and hawker2.jpg
+• Still not working? Check browser console (F12) for errors
+• Need help? See IMAGE_INTEGRATION_GUIDE.md for detailed instructions
+
+
+ADDING MORE IMAGES (OPTIONAL):
+• Add more .jpg files to the same folder
+• Update server-standalone.js imageMap
+• Restart backend server
+• See IMAGE_INTEGRATION_GUIDE.md for details

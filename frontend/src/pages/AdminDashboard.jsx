@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Car, ParkingCircle, AlertTriangle, Activity, LogOut, Truck, Menu, X, Camera, Ban, Zap } from 'lucide-react';
+import { Car, ParkingCircle, AlertTriangle, Activity, LogOut, Truck, Menu, X, Camera, Ban, Zap, Radio, Shield } from 'lucide-react';
 import TrafficMonitoring from '../components/admin/TrafficMonitoring';
 import ParkingManagement from '../components/admin/ParkingManagement';
 import ViolationManagement from '../components/admin/ViolationManagement';
@@ -12,11 +12,12 @@ import AIAgentCenter from '../components/admin/AIAgentCenter';
 import MLDetectionUpload from '../components/admin/MLDetectionUpload';
 import DailyReports from '../components/admin/DailyReports';
 import BangaloreTrafficMap from '../components/admin/BangaloreTrafficMap';
+import V2VSafetyCenter from '../components/admin/V2VSafetyCenter';
 import { Bot, FileBarChart, Map as MapIcon } from 'lucide-react';
 
 export default function AdminDashboard({ user, onLogout }) {
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState('traffic');
+  const [activeTab, setActiveTab] = useState('v2v-safety');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -25,7 +26,9 @@ export default function AdminDashboard({ user, onLogout }) {
   }, [location]);
 
   const tabs = [
+    { id: 'v2v-safety', label: '🚗 V2V & Safety AI', icon: Radio, path: '/admin/v2v-safety', color: 'blue' },
     { id: 'bangalore-map', label: 'Bangalore Traffic Map', icon: MapIcon, path: '/admin/bangalore-map', color: 'blue' },
+    { id: 'agents', label: 'AI Agent Center', icon: Bot, path: '/admin/agents', color: 'indigo' },
     { id: 'traffic', label: 'Traffic Monitoring', icon: Car, path: '/admin/traffic', color: 'blue' },
     { id: 'parking', label: 'Parking Management', icon: ParkingCircle, path: '/admin/parking', color: 'green' },
     { id: 'violations', label: 'Violations', icon: AlertTriangle, path: '/admin/violations', color: 'orange' },
@@ -33,25 +36,9 @@ export default function AdminDashboard({ user, onLogout }) {
     { id: 'illegal-parking', label: 'Illegal Parking AI', icon: Ban, path: '/admin/illegal-parking', color: 'rose' },
     { id: 'encroachment', label: 'Encroachment Monitor', icon: Camera, path: '/admin/encroachment', color: 'indigo' },
     { id: 'emergency', label: 'Emergency', icon: Truck, path: '/admin/emergency', color: 'red' },
-    { id: 'agents', label: 'AI Agent Center', icon: Bot, path: '/admin/agents', color: 'indigo' },
     { id: 'analytics', label: 'Analytics', icon: Activity, path: '/admin/analytics', color: 'purple' },
     { id: 'reports', label: 'Daily Reports', icon: FileBarChart, path: '/admin/reports', color: 'emerald' }
   ];
-
-  const getColorClasses = (color, isActive) => {
-    const colors = {
-      blue: isActive ? 'bg-blue-600 text-white' : 'text-blue-600 hover:bg-blue-50',
-      green: isActive ? 'bg-green-600 text-white' : 'text-green-600 hover:bg-green-50',
-      orange: isActive ? 'bg-orange-600 text-white' : 'text-orange-600 hover:bg-orange-50',
-      rose: isActive ? 'bg-rose-600 text-white' : 'text-rose-600 hover:bg-rose-50',
-      indigo: isActive ? 'bg-indigo-600 text-white' : 'text-indigo-600 hover:bg-indigo-50',
-      red: isActive ? 'bg-red-600 text-white' : 'text-red-600 hover:bg-red-50',
-      purple: isActive ? 'bg-purple-600 text-white' : 'text-purple-600 hover:bg-purple-50',
-      cyan: isActive ? 'bg-cyan-600 text-white' : 'text-cyan-600 hover:bg-cyan-50',
-      emerald: isActive ? 'bg-emerald-600 text-white' : 'text-emerald-600 hover:bg-emerald-50'
-    };
-    return colors[color];
-  };
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -113,12 +100,21 @@ export default function AdminDashboard({ user, onLogout }) {
             </button>
 
             <div className="flex items-center space-x-4">
+              <Link
+                to="/mobile"
+                target="_blank"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-all"
+              >
+                <Radio className="w-3.5 h-3.5 text-indigo-600" />
+                Mobile OBU / Edge View
+              </Link>
+
               <div className="hidden md:flex items-center space-x-3 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-100">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-sm">
-                  {user.name?.charAt(0) || 'A'}
+                  {user?.name?.charAt(0) || 'A'}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">{user.name}</p>
+                  <p className="text-sm font-semibold text-gray-800">{user?.name || 'Admin'}</p>
                   <p className="text-xs text-gray-500">Administrator</p>
                 </div>
               </div>
@@ -137,7 +133,8 @@ export default function AdminDashboard({ user, onLogout }) {
         <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 relative">
           <div className="animate-fade-in max-w-7xl mx-auto pb-20 lg:pb-0">
             <Routes>
-              <Route path="/" element={<BangaloreTrafficMap />} />
+              <Route path="/" element={<V2VSafetyCenter />} />
+              <Route path="/v2v-safety" element={<V2VSafetyCenter />} />
               <Route path="/bangalore-map" element={<BangaloreTrafficMap />} />
               <Route path="/traffic" element={<TrafficMonitoring />} />
               <Route path="/parking" element={<ParkingManagement />} />

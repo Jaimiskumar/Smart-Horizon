@@ -1,0 +1,77 @@
+{
+  "timestamp": "2026-08-19T22:36:43.752098",
+  "datasets": [
+    {
+      "name": "Traffic",
+      "path": "/Users/jaimisgondaliya/Downloads/Smart-traffic-and-parking-management-system/data/synthetic/traffic/traffic_synthetic.csv",
+      "rows": 12000,
+      "columns": 25,
+      "missing_values": 0,
+      "duplicates": 0,
+      "status": "PASSED"
+    },
+    {
+      "name": "V2V Communication",
+      "path": "/Users/jaimisgondaliya/Downloads/Smart-traffic-and-parking-management-system/data/synthetic/v2v/v2v_synthetic.csv",
+      "rows": 12000,
+      "columns": 22,
+      "missing_values": 0,
+      "duplicates": 0,
+      "status": "PASSED"
+    },
+    {
+      "name": "Accident Detection",
+      "path": "/Users/jaimisgondaliya/Downloads/Smart-traffic-and-parking-management-system/data/synthetic/accidents/accidents_synthetic.csv",
+      "rows": 12000,
+      "columns": 21,
+      "missing_values": 0,
+      "duplicates": 0,
+      "status": "PASSED"
+    },
+    {
+      "name": "Pedestrian Safety",
+      "path": "/Users/jaimisgondaliya/Downloads/Smart-traffic-and-parking-management-system/data/synthetic/pedestrians/pedestrians_synthetic.csv",
+      "rows": 12000,
+      "columns": 20,
+      "missing_values": 0,
+      "duplicates": 0,
+      "status": "PASSED"
+    },
+    {
+      "name": "Hotspots",
+      "path": "/Users/jaimisgondaliya/Downloads/Smart-traffic-and-parking-management-system/data/synthetic/hotspots/hotspots_synthetic.csv",
+      "rows": 12000,
+      "columns": 19,
+      "missing_values": 0,
+      "duplicates": 0,
+      "status": "PASSED"
+    },
+    {
+      "name": "Traffic Prediction",
+      "path": "/Users/jaimisgondaliya/Downloads/Smart-traffic-and-parking-management-system/data/synthetic/traffic_prediction/prediction_time_series.csv",
+      "rows": 12000,
+      "columns": 20,
+      "missing_values": 0,
+      "duplicates": 0,
+      "status": "PASSED"
+    },
+    {
+      "name": "Emergency V2X",
+      "path": "/Users/jaimisgondaliya/Downloads/Smart-traffic-and-parking-management-system/data/synthetic/emergency/emergency_v2x.csv",
+      "rows": 10000,
+      "columns": 13,
+      "missing_values": 0,
+      "duplicates": 0,
+      "status": "PASSED"
+    },
+    {
+      "name": "Multi-Modal Combined",
+      "path": "/Users/jaimisgondaliya/Downloads/Smart-traffic-and-parking-management-system/data/synthetic/combined/multimodal_traffic_dataset.csv",
+      "rows": 12000,
+      "columns": 14,
+      "missing_values": 0,
+      "duplicates": 0,
+      "status": "PASSED"
+    }
+  ]
+}

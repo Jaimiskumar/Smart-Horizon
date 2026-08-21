@@ -7,6 +7,7 @@ import ReportViolation from '../components/citizen/ReportViolation';
 import ReportRoadIssue from '../components/citizen/ReportRoadIssue';
 import RoadNews from '../components/citizen/RoadNews';
 import TrafficMap from '../components/citizen/TrafficMap';
+import SmartCityShield from '../components/citizen/SmartCityShield';
 import { 
   ParkingCircle, 
   CreditCard, 
@@ -18,12 +19,14 @@ import {
   Camera,
   Construction,
   Megaphone,
+  Sparkles,
+  Shield,
   Map as MapIcon
 } from 'lucide-react';
 
 export default function CitizenDashboard({ user, onLogout }) {
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState('parking');
+  const [activeTab, setActiveTab] = useState('smart-city');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -32,23 +35,15 @@ export default function CitizenDashboard({ user, onLogout }) {
   }, [location]);
 
   const tabs = [
+    { id: 'smart-city', label: '🌿 Smart City & Pedestrian Shield', icon: Sparkles, path: '/citizen/smart-city', color: 'emerald' },
     { id: 'parking', label: 'Book Parking', icon: ParkingCircle, path: '/citizen/parking', color: 'blue' },
+    { id: 'map', label: 'Live Traffic Map', icon: MapIcon, path: '/citizen/map' },
     { id: 'bookings', label: 'My Bookings', icon: User, path: '/citizen/bookings' },
     { id: 'fines', label: 'My Fines', icon: AlertCircle, path: '/citizen/fines' },
-    { id: 'map', label: 'Live Traffic Map', icon: MapIcon, path: '/citizen/map' },
     { id: 'report', label: 'Report Violation', icon: Camera, path: '/citizen/report' },
-    { id: 'road-issue', label: 'Report Issue', icon: Construction, path: '/citizen/road-issue' },
+    { id: 'road-issue', label: 'Report Road Issue', icon: Construction, path: '/citizen/road-issue' },
     { id: 'news', label: 'Road News', icon: Megaphone, path: '/citizen/news' }
   ];
-
-  const getColorClasses = (color, isActive) => {
-    const colors = {
-      blue: isActive ? 'bg-blue-600 text-white' : 'text-blue-600 hover:bg-blue-50',
-      green: isActive ? 'bg-green-600 text-white' : 'text-green-600 hover:bg-green-50',
-      orange: isActive ? 'bg-orange-600 text-white' : 'text-orange-600 hover:bg-orange-50'
-    };
-    return colors[color];
-  };
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden">
@@ -65,11 +60,11 @@ export default function CitizenDashboard({ user, onLogout }) {
         <div className="p-4 border-b border-gray-100 flex items-center justify-between h-16">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
-              <ParkingCircle className="w-5 h-5 text-white" />
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent uppercase tracking-tighter">
-                Solapur Smart City
+              <h1 className="text-base font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent uppercase tracking-tight">
+                SAMVED Smart City
               </h1>
             </div>
           </div>
@@ -100,7 +95,7 @@ export default function CitizenDashboard({ user, onLogout }) {
       {/* Main Layout */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Navbar */}
-        <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200 z-30">
+        <header className="bg-white shadow-sm border-b border-gray-200 z-30">
           <div className="px-4 h-16 flex items-center justify-between lg:justify-end">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -110,13 +105,22 @@ export default function CitizenDashboard({ user, onLogout }) {
             </button>
 
             <div className="flex items-center space-x-4">
-              <div className="hidden md:flex items-center space-x-3 px-3 py-1.5 bg-indigo-50/50 rounded-lg border border-indigo-100">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold shadow-sm">
-                  {user.name?.charAt(0) || 'C'}
+              <Link
+                to="/mobile"
+                target="_blank"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-all"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                Mobile Crosswalk & Shield
+              </Link>
+
+              <div className="hidden md:flex items-center space-x-3 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-100">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-sm">
+                  {user?.name?.charAt(0) || 'C'}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">{user.name}</p>
-                  <p className="text-xs text-gray-500">Citizen</p>
+                  <p className="text-sm font-semibold text-gray-800">{user?.name || 'Citizen'}</p>
+                  <p className="text-xs text-gray-500">Citizen User</p>
                 </div>
               </div>
               <button
@@ -134,7 +138,8 @@ export default function CitizenDashboard({ user, onLogout }) {
         <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 relative">
           <div className="animate-fade-in max-w-7xl mx-auto pb-20 lg:pb-0">
             <Routes>
-              <Route path="/" element={<ParkingBooking user={user} />} />
+              <Route path="/" element={<SmartCityShield />} />
+              <Route path="/smart-city" element={<SmartCityShield />} />
               <Route path="/parking" element={<ParkingBooking user={user} />} />
               <Route path="/map" element={<TrafficMap />} />
               <Route path="/bookings" element={<MyBookings />} />
@@ -147,7 +152,7 @@ export default function CitizenDashboard({ user, onLogout }) {
         </main>
       </div>
 
-      <style jsx="true">{`
+      <style>{`
         @keyframes fade-in {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }

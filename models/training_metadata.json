@@ -1,0 +1,9 @@
+{
+  "dataset_type": "synthetic",
+  "dataset_version": "v1.0",
+  "random_seed": 42,
+  "total_synthetic_records": 94000,
+  "training_timestamp": "2026-08-19T22:36:51.418798",
+  "bengaluru_zones_count": 12,
+  "models_trained": 7
+}

@@ -6,7 +6,8 @@ import { io } from 'socket.io-client';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import CitizenDashboard from './pages/CitizenDashboard';
-
+import MobileAppPage from './pages/MobileAppPage';
+import PortalGateway from './pages/PortalGateway';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -19,10 +20,8 @@ function App() {
     }
   }, []);
 
-
-
   useEffect(() => {
-    const socket = io('http://localhost:5001', {
+    const socket = io({
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
@@ -90,6 +89,8 @@ function App() {
     <BrowserRouter>
       <Toaster position="top-right" />
       <Routes>
+        <Route path="/" element={<PortalGateway user={user} />} />
+        <Route path="/mobile" element={<MobileAppPage />} />
         <Route
           path="/login"
           element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/citizen'} /> : <Login onLogin={handleLogin} />}
@@ -103,8 +104,8 @@ function App() {
           element={user?.role === 'citizen' ? <CitizenDashboard user={user} onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
         <Route
-          path="/"
-          element={<Navigate to={user ? (user.role === 'admin' ? '/admin' : '/citizen') : '/login'} />}
+          path="*"
+          element={<Navigate to="/" />}
         />
       </Routes>
     </BrowserRouter>

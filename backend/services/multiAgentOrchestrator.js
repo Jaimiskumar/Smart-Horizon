@@ -16,6 +16,7 @@
  */
 
 import { urbanflowService } from './urbanflowService.js';
+import { communityCloudService } from './communityCloudService.js';
 
 export class MultiAgentOrchestrator {
   constructor() {
@@ -290,20 +291,43 @@ export class MultiAgentOrchestrator {
     // ─────────────────────────────────────────────────────────────
     // STAGE 7: INTERVENTION AGENT (Strategy Formulation)
     // ─────────────────────────────────────────────────────────────
-    const candidateInterventions = [
-      { id: 'cand-1', name: 'V2V Warning Broadcast Only', expected_delay_reduction_percent: 18.0, risk: 'LOW', details: { signal_timing: 60 } },
-      { id: 'cand-2', name: 'Adaptive Signal Optimization + Pedestrian Protection', expected_delay_reduction_percent: 34.0, risk: 'LOW', details: { signal_timing: 85 } },
-      { id: 'cand-3', name: 'V2V Warning + Dynamic Rerouting + Pedestrian Extension', expected_delay_reduction_percent: 48.5, risk: 'LOW', details: { signal_timing: 80, reroute_percentage: 0.35 } }
-    ];
+    let candidateInterventions = [];
+    let workOrderGenerated = null;
+
+    if (eventType === 'pothole' || eventType === 'road_blockage') {
+      workOrderGenerated = communityCloudService.createWorkOrder({
+        hazard_id: `HAZ-POT-${Date.now().toString().slice(-4)}`,
+        title: `Pothole / Road Surface Defect (${sharedContext.multimodal_inputs.vehicle_count} veh/hr impact)`,
+        category: eventType === 'pothole' ? 'POTHOLE' : 'ROAD_BLOCKAGE',
+        zone_name: zone,
+        road: `${zone} Main Corridor`,
+        lat: sharedContext.location.lat,
+        lng: sharedContext.location.lon,
+        severity: sharedContext.multimodal_inputs.severity || 'HIGH',
+        depth_cm: 11.5
+      }, io);
+
+      candidateInterventions = [
+        { id: 'cand-1', name: 'V2V Speed Warning Only (30 km/h Advisory)', expected_delay_reduction_percent: 14.0, risk: 'LOW', details: { speed_limit: 30 } },
+        { id: 'cand-2', name: 'BBMP Routine Maintenance Queue + Signal Optimization', expected_delay_reduction_percent: 26.5, risk: 'LOW', details: { signal_timing: 75 } },
+        { id: 'cand-3', name: 'V2V Warning + Automated BBMP Quick-Fix Dispatch + Corridor Speed Harmonization', expected_delay_reduction_percent: 42.0, risk: 'LOW', details: { work_order_id: workOrderGenerated.work_order_id, speed_limit: 30 } }
+      ];
+    } else {
+      candidateInterventions = [
+        { id: 'cand-1', name: 'V2V Warning Broadcast Only', expected_delay_reduction_percent: 18.0, risk: 'LOW', details: { signal_timing: 60 } },
+        { id: 'cand-2', name: 'Adaptive Signal Optimization + Pedestrian Protection', expected_delay_reduction_percent: 34.0, risk: 'LOW', details: { signal_timing: 85 } },
+        { id: 'cand-3', name: 'V2V Warning + Dynamic Rerouting + Pedestrian Extension', expected_delay_reduction_percent: 48.5, risk: 'LOW', details: { signal_timing: 80, reroute_percentage: 0.35 } }
+      ];
+    }
     const selectedIntervention = candidateInterventions[2];
 
     const interventionAgentOutput = this.createAgentOutput({
       agent_name: 'Intervention Agent',
       status: 'COMPLETED',
-      input_summary: `Synthesized outputs from Accident, V2V, Pedestrian, and Prediction agents`,
+      input_summary: `Synthesized outputs from ${eventType === 'pothole' ? 'Infrastructure, V2V & Speed' : 'Accident, V2V, Pedestrian, and Prediction'} agents`,
       decision: `Selected Pareto-Optimal Strategy: "${selectedIntervention.name}" (-${selectedIntervention.expected_delay_reduction_percent}% delay reduction, 0 secondary crash risk).`,
       confidence: 0.94,
-      evidence: { candidates: candidateInterventions, selected: selectedIntervention },
+      evidence: { candidates: candidateInterventions, selected: selectedIntervention, work_order: workOrderGenerated },
       recommended_action: 'Validate policy compliance and submit to Digital Twin physical simulation',
       constraints: ['max_signal_timing_120s', 'reroute_corridor_capacity'],
       downstream_action: 'Pass strategy to Policy & Compliance Agent',
@@ -312,10 +336,11 @@ export class MultiAgentOrchestrator {
 
     sharedContext.candidate_interventions = candidateInterventions;
     sharedContext.selected_intervention = selectedIntervention;
+    sharedContext.work_order = workOrderGenerated;
     sharedContext.agent_results.intervention = interventionAgentOutput;
     sharedContext.pipeline_progress = 72;
 
-    this.emitEvent(io, 'v2v_intervention', { incident_id: incidentId, candidates: candidateInterventions, selected: selectedIntervention });
+    this.emitEvent(io, 'v2v_intervention', { incident_id: incidentId, candidates: candidateInterventions, selected: selectedIntervention, work_order: workOrderGenerated });
     this.emitEvent(io, 'traffic_signal_recommendation', { incident_id: incidentId, signal_action: 'HOLD_VEHICLE_PHASE_FOR_PEDESTRIANS', green_extension_sec: 18 });
     this.emitEvent(io, 'agent_completed', { incident_id: incidentId, agent_name: 'Intervention Agent', result: interventionAgentOutput });
 
@@ -419,18 +444,26 @@ export class MultiAgentOrchestrator {
     this.emitEvent(io, 'consensus_completed', { incident_id: incidentId, consensus_result: consensusScores });
     this.emitEvent(io, 'agent_completed', { incident_id: incidentId, agent_name: 'Consensus Engine', result: consensusAgentOutput });
 
-    // ─────────────────────────────────────────────────────────────
-    // STAGE 11: EXPLAINABILITY AGENT & OPERATOR READY NOTIFICATION
-    // ─────────────────────────────────────────────────────────────
-    const explanationText = `Vehicle ${sharedContext.multimodal_inputs.vehicle_id} reported sudden deceleration of ${sharedContext.multimodal_inputs.deceleration_mps2} m/s². 3 vehicles are within the 450m warning zone, and pedestrians are present at crosswalk J2. The AI recommends broadcasting a V2V hazard warning, dynamic traffic rerouting, and holding the J2 signal phase to protect pedestrian crossing. Policy validation passed. Operator approval is required before execution.`;
+    const isPothole = eventType === 'pothole' || eventType === 'road_blockage';
+    const explanationText = isPothole
+      ? `Connected Vehicle ${sharedContext.multimodal_inputs.vehicle_id} detected a severe pothole/road surface defect on ${zone}. UrbanFlow Infrastructure Agent created Maintenance Work Order ${sharedContext.work_order?.work_order_id || 'WO-BBMP-88219'} and dispatched ${sharedContext.work_order?.crew || 'BBMP South Zone Unit'}. V2V 30 km/h speed advisory broadcasted to approaching vehicles.`
+      : `Vehicle ${sharedContext.multimodal_inputs.vehicle_id} reported sudden deceleration of ${sharedContext.multimodal_inputs.deceleration_mps2} m/s². 3 vehicles are within the 450m warning zone, and pedestrians are present at crosswalk J2. The AI recommends broadcasting a V2V hazard warning, dynamic traffic rerouting, and holding the J2 signal phase to protect pedestrian crossing. Policy validation passed. Operator approval is required before execution.`;
 
-    const bullets = {
-      what_happened: `Accident / sudden braking detected on ${zone} involving ${sharedContext.multimodal_inputs.vehicle_id}.`,
-      why: `Sudden deceleration of ${sharedContext.multimodal_inputs.deceleration_mps2} m/s² triggered 94% collision probability and high pedestrian conflict risk.`,
-      what_selected: selectedIntervention.name,
-      expected_impact: `Delay reduced from 48s to 24.5s (-48.5%). Secondary crash risk and pedestrian danger eliminated.`,
-      constraints_checked: ['Policy Rules Validated', 'Safety Bounds Respected', 'Pedestrian Walk Extension Guaranteed']
-    };
+    const bullets = isPothole
+      ? {
+          what_happened: `Pothole / Road Defect detected on ${zone} by ${sharedContext.multimodal_inputs.vehicle_id}.`,
+          why: `Surface depth and vibration spike identified severe damage requiring BBMP rapid asphalt repair.`,
+          what_selected: selectedIntervention.name,
+          expected_impact: `Speed harmonized at 30 km/h (-42% delay risk), secondary tyre blowouts prevented, maintenance scheduled.`,
+          constraints_checked: ['BBMP Municipal Work Order Verified', 'V2V Corridor Proximity Broadcasted', 'Speed Harmonization Active']
+        }
+      : {
+          what_happened: `Accident / sudden braking detected on ${zone} involving ${sharedContext.multimodal_inputs.vehicle_id}.`,
+          why: `Sudden deceleration of ${sharedContext.multimodal_inputs.deceleration_mps2} m/s² triggered 94% collision probability and high pedestrian conflict risk.`,
+          what_selected: selectedIntervention.name,
+          expected_impact: `Delay reduced from 48s to 24.5s (-48.5%). Secondary crash risk and pedestrian danger eliminated.`,
+          constraints_checked: ['Policy Rules Validated', 'Safety Bounds Respected', 'Pedestrian Walk Extension Guaranteed']
+        };
 
     const explainabilityAgentOutput = this.createAgentOutput({
       agent_name: 'Explainability Agent',

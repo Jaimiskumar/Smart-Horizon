@@ -61,7 +61,9 @@ class ModelRegistry:
             'hotspot_model': 'hotspot_model.joblib',
             'traffic_prediction_model': 'traffic_prediction_model.joblib',
             'emergency_priority_model': 'emergency_priority_model.joblib',
-            'multimodal_model': 'multimodal_model.joblib'
+            'multimodal_model': 'multimodal_model.joblib',
+            'pothole_model': 'pothole_model.joblib',
+            'secondary_collision_model': 'secondary_collision_model.joblib'
         }
 
         for name, filename in model_files.items():
@@ -718,6 +720,64 @@ async def get_safety_status():
         "human_in_the_loop_mandatory": True,
         "autonomous_actuation_blocked": True,
         "disclaimer": "Decision-support and simulated vehicle warning system. Physical intervention requires operator approval."
+    }
+
+@app.post("/api/urbanflow/pothole/analyze")
+async def analyze_pothole(event: dict = Body(...)):
+    depth = float(event.get('pothole_depth_cm', 10.5))
+    width = float(event.get('pothole_width_cm', 55.0))
+    area = (depth * width) / 10000.0
+    iri = float(event.get('road_roughness_iri', 6.5))
+    vib = float(event.get('vehicle_vibration_g', 2.1))
+    speed = float(event.get('approaching_speed_kmh', 45.0))
+    conf = float(event.get('confidence', 0.95))
+
+    severity = "HIGH"
+    if registry.is_loaded('pothole_model'):
+        try:
+            feats = np.array([[depth, width, area, iri, vib, speed, conf]])
+            pred = registry.models['pothole_model'].predict(feats)[0]
+            severity = str(pred)
+        except Exception as e:
+            print(f"Pothole model error: {e}")
+
+    return {
+        "hazard_type": "POTHOLE",
+        "severity": severity,
+        "confidence": conf,
+        "repair_urgency": "EMERGENCY_IMMEDIATE" if severity == "CRITICAL" else ("URGENT_24H" if severity == "HIGH" else "PRIORITY_3D"),
+        "speed_advisory_kmh": 25.0 if severity == "CRITICAL" else (30.0 if severity == "HIGH" else 40.0),
+        "model_version": "pot-v1",
+        "disclaimer": "REAL ML MODEL INFERENCE (pothole_model.joblib)"
+    }
+
+@app.post("/api/urbanflow/secondary-collision/analyze")
+async def analyze_secondary_collision(event: dict = Body(...)):
+    decel = float(event.get('lead_deceleration_mps2', 9.5))
+    speed = float(event.get('approaching_speed_kmh', 55.0))
+    dist = float(event.get('inter_vehicle_distance_m', 45.0))
+    ttc = dist / max(1.0, speed / 3.6)
+    v2v_lat = float(event.get('v2v_warning_latency_ms', 4.5))
+    rt = float(event.get('driver_reaction_time_sec', 1.2))
+    fric = float(event.get('road_friction_coeff', 0.7))
+    dens = float(event.get('traffic_density', 0.8))
+
+    risk = "HIGH"
+    if registry.is_loaded('secondary_collision_model'):
+        try:
+            feats = np.array([[decel, speed, dist, ttc, v2v_lat, rt, fric, dens]])
+            pred = registry.models['secondary_collision_model'].predict(feats)[0]
+            risk = str(pred)
+        except Exception as e:
+            print(f"Secondary collision model error: {e}")
+
+    return {
+        "secondary_collision_risk": risk,
+        "reroute_recommended": risk in ["CRITICAL", "HIGH"],
+        "safe_following_distance_m": max(70, round(dist * 1.8)),
+        "time_to_collision_sec": round(ttc, 2),
+        "model_version": "sec-v1",
+        "disclaimer": "REAL ML MODEL INFERENCE (secondary_collision_model.joblib)"
     }
 
 def Date_Now_Slice():

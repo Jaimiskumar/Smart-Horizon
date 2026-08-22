@@ -403,6 +403,72 @@ export class UrbanFlowService {
       return { available: false, error: e.message };
     }
   }
+
+  /**
+   * Pothole & Road Hazard AI Detection
+   */
+  async analyzePotholeHazard(potholeData) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+      const response = await fetch(`${this.baseUrl}/api/urbanflow/pothole/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(potholeData),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (response.ok) return await response.json();
+      throw new Error(`UrbanFlow returned ${response.status}`);
+    } catch (e) {
+      const depth = Number(potholeData.pothole_depth_cm || 10.5);
+      const vib = Number(potholeData.vehicle_vibration_g || 2.1);
+      const severity = depth > 9.0 || vib > 2.0 ? 'HIGH' : depth > 4.5 ? 'MEDIUM' : 'LOW';
+      return {
+        hazard_type: 'POTHOLE',
+        severity,
+        confidence: Number(potholeData.confidence || 0.95),
+        repair_urgency: severity === 'HIGH' ? 'URGENT_24H' : 'PRIORITY_3D',
+        speed_advisory_kmh: severity === 'HIGH' ? 30.0 : 40.0,
+        model_version: 'pot-v1 (fallback)',
+        disclaimer: 'SIMULATED DASHCAM AI VISION'
+      };
+    }
+  }
+
+  /**
+   * Secondary Collision Risk Assessment
+   */
+  async analyzeSecondaryCollisionRisk(collisionData) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+      const response = await fetch(`${this.baseUrl}/api/urbanflow/secondary-collision/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(collisionData),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (response.ok) return await response.json();
+      throw new Error(`UrbanFlow returned ${response.status}`);
+    } catch (e) {
+      const decel = Number(collisionData.lead_deceleration_mps2 || 9.5);
+      const dist = Number(collisionData.inter_vehicle_distance_m || 45.0);
+      const risk = decel > 8.0 || dist < 30 ? 'CRITICAL' : decel > 5.0 ? 'HIGH' : 'MEDIUM';
+      return {
+        secondary_collision_risk: risk,
+        reroute_recommended: risk === 'CRITICAL' || risk === 'HIGH',
+        safe_following_distance_m: Math.max(70, Math.round(dist * 1.8)),
+        model_version: 'sec-v1 (fallback)',
+        disclaimer: 'SIMULATED V2V DSRC TELEMETRY'
+      };
+    }
+  }
 }
 
 export const urbanflowService = new UrbanFlowService();

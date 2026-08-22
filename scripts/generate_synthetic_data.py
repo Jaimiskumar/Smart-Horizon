@@ -66,6 +66,8 @@ def ensure_directories():
     os.makedirs(os.path.join(DATA_DIR, 'traffic_prediction'), exist_ok=True)
     os.makedirs(os.path.join(DATA_DIR, 'emergency'), exist_ok=True)
     os.makedirs(os.path.join(DATA_DIR, 'combined'), exist_ok=True)
+    os.makedirs(os.path.join(DATA_DIR, 'potholes'), exist_ok=True)
+    os.makedirs(os.path.join(DATA_DIR, 'secondary_collision'), exist_ok=True)
     os.makedirs(os.path.join(BASE_DIR, 'data', 'processed'), exist_ok=True)
     os.makedirs(os.path.join(BASE_DIR, 'models'), exist_ok=True)
 
@@ -702,6 +704,145 @@ def generate_multimodal_dataset(num_records=12000):
     return filepath
 
 # ==============================================================================
+# 9. POTHOLES & ROAD HAZARDS SYNTHETIC DATASET (10,000 records)
+# ==============================================================================
+def generate_potholes_dataset(num_records=10000):
+    print(f"🕳️ Generating Connected Vehicle Potholes & Road Hazards Dataset ({num_records} records)...")
+    start_time = datetime(2026, 1, 1, 0, 0, 0)
+    records = []
+
+    for i in range(num_records):
+        delta_minutes = random.randint(0, 90 * 24 * 60)
+        curr_time = start_time + timedelta(minutes=delta_minutes)
+        hour = curr_time.hour
+        zone = random.choice(BENGALURU_ZONES)
+
+        # GPS with jitter
+        lat = zone["lat"] + random.uniform(-0.005, 0.005)
+        lng = zone["lng"] + random.uniform(-0.005, 0.005)
+
+        confidence = round(random.uniform(0.78, 0.99), 3)
+        depth_cm = round(random.uniform(2.0, 18.5), 1)
+        width_cm = round(random.uniform(15.0, 110.0), 1)
+        surface_area_sqm = round((depth_cm * width_cm) / 10000.0, 3)
+        iri = round(random.uniform(2.5, 11.0), 2)
+        vibration_g = round(random.uniform(0.2, 3.5), 2)
+        speed_kmh = round(random.uniform(15.0, 65.0), 1)
+
+        weather = random.choices(WEATHER_CONDITIONS, weights=[0.60, 0.20, 0.12, 0.05, 0.03])[0]
+        lighting = "DAYLIGHT" if (6 <= hour <= 18) else ("NIGHT_LIT" if random.random() < 0.7 else "NIGHT_UNLIT")
+
+        # Severity heuristic
+        if depth_cm > 10.0 or vibration_g > 2.2 or width_cm > 60.0:
+            severity = "CRITICAL"
+            urgency = "EMERGENCY_IMMEDIATE"
+        elif depth_cm > 6.0 or vibration_g > 1.4 or width_cm > 35.0:
+            severity = "HIGH"
+            urgency = "URGENT_24H"
+        elif depth_cm > 3.5 or vibration_g > 0.8:
+            severity = "MEDIUM"
+            urgency = "PRIORITY_3D"
+        else:
+            severity = "LOW"
+            urgency = "ROUTINE"
+
+        reports_count = random.choices([1, 2, 3, 4, 5], weights=[0.45, 0.28, 0.15, 0.08, 0.04])[0]
+        is_verified = 1 if reports_count >= 2 else 0
+
+        records.append({
+            "record_id": f"POT-{i+1:06d}",
+            "timestamp": curr_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "hour": hour,
+            "zone_id": zone["zone_id"],
+            "zone_name": zone["name"],
+            "road_name": zone["road"],
+            "latitude": round(lat, 6),
+            "longitude": round(lng, 6),
+            "dashcam_detection_confidence": confidence,
+            "pothole_depth_cm": depth_cm,
+            "pothole_width_cm": width_cm,
+            "surface_area_sqm": surface_area_sqm,
+            "road_roughness_iri": iri,
+            "vehicle_vibration_g": vibration_g,
+            "approaching_speed_kmh": speed_kmh,
+            "weather": weather,
+            "lighting": lighting,
+            "severity": severity,
+            "repair_urgency": urgency,
+            "community_reports_count": reports_count,
+            "verified_status": is_verified,
+            "synthetic_label": "SYNTHETIC_DASHCAM_HAZARD"
+        })
+
+    filepath = os.path.join(DATA_DIR, 'potholes', 'potholes_synthetic.csv')
+    pd.DataFrame(records).to_csv(filepath, index=False)
+    print(f"✅ Saved potholes synthetic dataset to {filepath}")
+    return filepath
+
+# ==============================================================================
+# 10. SECONDARY COLLISION RISK SYNTHETIC DATASET (10,000 records)
+# ==============================================================================
+def generate_secondary_collision_dataset(num_records=10000):
+    print(f"💥 Generating V2V Secondary Collision Risk Dataset ({num_records} records)...")
+    start_time = datetime(2026, 1, 1, 0, 0, 0)
+    records = []
+
+    for i in range(num_records):
+        delta_minutes = random.randint(0, 90 * 24 * 60)
+        curr_time = start_time + timedelta(minutes=delta_minutes)
+        hour = curr_time.hour
+        zone = random.choice(BENGALURU_ZONES)
+
+        lead_decel = round(random.uniform(2.0, 11.5), 2)
+        app_speed = round(random.uniform(20.0, 85.0), 1)
+        dist_m = round(random.uniform(8.0, 140.0), 1)
+        speed_mps = app_speed / 3.6
+        ttc = round(dist_m / max(1.0, speed_mps), 2)
+        v2v_lat_ms = round(random.uniform(2.5, 12.0), 2)
+        driver_rt = round(random.uniform(0.7, 2.2), 2)
+        friction = round(random.uniform(0.35, 0.85), 2)
+        density = round(random.uniform(0.15, 0.98), 2)
+
+        # Risk scoring
+        risk_score = (lead_decel / 10.0 * 0.35) + (app_speed / 80.0 * 0.25) + ((150 - dist_m) / 150.0 * 0.25) + (density * 0.15)
+        if ttc < 2.0 or risk_score > 0.75:
+            risk = "CRITICAL"
+            reroute = 1
+        elif ttc < 3.5 or risk_score > 0.55:
+            risk = "HIGH"
+            reroute = 1
+        elif ttc < 5.5 or risk_score > 0.35:
+            risk = "MEDIUM"
+            reroute = 0
+        else:
+            risk = "LOW"
+            reroute = 0
+
+        records.append({
+            "record_id": f"SEC-{i+1:06d}",
+            "timestamp": curr_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "hour": hour,
+            "zone_id": zone["zone_id"],
+            "zone_name": zone["name"],
+            "lead_deceleration_mps2": lead_decel,
+            "approaching_speed_kmh": app_speed,
+            "inter_vehicle_distance_m": dist_m,
+            "time_to_collision_sec": ttc,
+            "v2v_warning_latency_ms": v2v_lat_ms,
+            "driver_reaction_time_sec": driver_rt,
+            "road_friction_coeff": friction,
+            "traffic_density": density,
+            "secondary_collision_risk": risk,
+            "reroute_recommended": reroute,
+            "synthetic_label": "SYNTHETIC_V2V_COLLISION_RISK"
+        })
+
+    filepath = os.path.join(DATA_DIR, 'secondary_collision', 'secondary_collision_synthetic.csv')
+    pd.DataFrame(records).to_csv(filepath, index=False)
+    print(f"✅ Saved secondary collision synthetic dataset to {filepath}")
+    return filepath
+
+# ==============================================================================
 # DATASET QUALITY VALIDATION
 # ==============================================================================
 def validate_synthetic_datasets():
@@ -717,7 +858,9 @@ def validate_synthetic_datasets():
         ("Hotspots", os.path.join(DATA_DIR, 'hotspots', 'hotspots_synthetic.csv')),
         ("Traffic Prediction", os.path.join(DATA_DIR, 'traffic_prediction', 'prediction_time_series.csv')),
         ("Emergency V2X", os.path.join(DATA_DIR, 'emergency', 'emergency_v2x.csv')),
-        ("Multi-Modal Combined", os.path.join(DATA_DIR, 'combined', 'multimodal_traffic_dataset.csv'))
+        ("Multi-Modal Combined", os.path.join(DATA_DIR, 'combined', 'multimodal_traffic_dataset.csv')),
+        ("Potholes & Hazards", os.path.join(DATA_DIR, 'potholes', 'potholes_synthetic.csv')),
+        ("Secondary Collision", os.path.join(DATA_DIR, 'secondary_collision', 'secondary_collision_synthetic.csv'))
     ]
 
     report = {"timestamp": datetime.now().isoformat(), "datasets": []}
@@ -764,7 +907,10 @@ def main():
     generate_traffic_prediction_dataset(12000)
     generate_emergency_dataset(10000)
     generate_multimodal_dataset(12000)
+    generate_potholes_dataset(10000)
+    generate_secondary_collision_dataset(10000)
     validate_synthetic_datasets()
 
 if __name__ == "__main__":
     main()
+

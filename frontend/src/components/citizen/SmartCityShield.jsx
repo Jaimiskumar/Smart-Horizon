@@ -28,7 +28,8 @@ import {
 } from 'lucide-react';
 
 export default function SmartCityShield() {
-  const [activeSection, setActiveSection] = useState('pedestrian'); // 'pedestrian' | 'pollution' | 'report' | 'tickets'
+  const [activeSection, setActiveSection] = useState('pedestrian'); // 'pedestrian' | 'pollution' | 'report' | 'road-safety' | 'tickets'
+  const [communityHazards, setCommunityHazards] = useState([]);
   
   // ── 1. Pedestrian Crossing State ──
   const [pedestrianStatus, setPedestrianStatus] = useState({
@@ -129,7 +130,21 @@ export default function SmartCityShield() {
 
   // Socket.IO real-time sync for pedestrian signals & citizen reports
   useEffect(() => {
+    const fetchCommunityHazards = async () => {
+      try {
+        const res = await axios.get('/api/urbanflow/community-cloud/hazards');
+        if (res.data?.hazards) setCommunityHazards(res.data.hazards);
+      } catch (e) {
+        console.warn('Could not load hazards for citizen dashboard:', e.message);
+      }
+    };
+    fetchCommunityHazards();
+
     const socket = io({ transports: ['websocket', 'polling'] });
+
+    socket.on('hazard_reported', fetchCommunityHazards);
+    socket.on('hazard_verified', fetchCommunityHazards);
+    socket.on('urbanflow-workorder-dispatched', fetchCommunityHazards);
 
     socket.on('pedestrian_risk_update', (data) => {
       setPedestrianStatus(p => ({
@@ -267,13 +282,23 @@ export default function SmartCityShield() {
           </button>
 
           <button
+            onClick={() => setActiveSection('road-safety')}
+            className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
+              activeSection === 'road-safety' ? 'bg-indigo-600 text-white shadow-sm font-black' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            <Car className="w-4 h-4" />
+            🚗 Community Road Hazards & Potholes
+          </button>
+
+          <button
             onClick={() => setActiveSection('tickets')}
             className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
-              activeSection === 'tickets' ? 'bg-indigo-600 text-white shadow-sm font-black' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+              activeSection === 'tickets' ? 'bg-slate-800 text-white shadow-sm font-black' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
             }`}
           >
             <Shield className="w-4 h-4" />
-            My Tracked Grievances ({myTickets.length})
+            Track Grievances ({myTickets.length})
           </button>
         </div>
       </div>
@@ -551,6 +576,74 @@ export default function SmartCityShield() {
                   }`}>
                     {t.status}
                   </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── SECTION 5: COMMUNITY ROAD SAFETY & VERIFIED POTHOLES ── */}
+      {activeSection === 'road-safety' && (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div>
+              <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+                <Car className="w-5 h-5 text-indigo-600" />
+                Community Road Safety & Verified Pothole Advisories
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Real-time road defects and hazards detected by connected vehicle dashcams and verified by citizen drivers.
+              </p>
+            </div>
+            <span className="px-3 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold rounded-xl">
+              {communityHazards.length} Active Hazards
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {communityHazards.map((hazard) => (
+              <div
+                key={hazard.hazard_id}
+                className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 hover:border-indigo-300 transition"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span
+                      className={`inline-block px-2 py-0.5 rounded text-[9px] font-black uppercase mb-1 ${
+                        hazard.status === 'COMMUNITY_VERIFIED'
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                          : 'bg-amber-100 text-amber-800 border border-amber-300'
+                      }`}
+                    >
+                      {hazard.status === 'COMMUNITY_VERIFIED'
+                        ? `✓ VERIFIED (${hazard.verification_count} REPORTS)`
+                        : 'REPORTED (1)'}
+                    </span>
+                    <h3 className="text-sm font-bold text-slate-900">{hazard.title}</h3>
+                    <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                      {hazard.road}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs font-extrabold text-indigo-600 font-mono">
+                      {hazard.speed_advisory_kmh} km/h
+                    </span>
+                    <p className="text-[10px] text-slate-400">Safe Speed</p>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-600">
+                  <span>Severity: <strong className="text-amber-600">{hazard.severity}</strong></span>
+                  {hazard.work_order_id ? (
+                    <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                      <Wrench className="w-3.5 h-3.5" />
+                      Repair Dispatched
+                    </span>
+                  ) : (
+                    <span className="text-slate-500">Under AI Review</span>
+                  )}
                 </div>
               </div>
             ))}

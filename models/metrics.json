@@ -2,7 +2,7 @@
   "dataset_version": "v1.0-synthetic",
   "random_seed": 42,
   "disclaimer": "Trained on synthetic simulation dataset for prototype validation and hackathon demonstration.",
-  "generated_at": "2026-08-19T22:36:51.417462",
+  "generated_at": "2026-08-22T19:00:49.512396",
   "models": {
     "accident_model": {
       "model_name": "accident_model",
@@ -33,7 +33,7 @@
         "vehicle_density": 0.0,
         "nearby_vehicle_count": 0.0
       },
-      "trained_at": "2026-08-19T22:36:45.753657"
+      "trained_at": "2026-08-22T19:00:43.016984"
     },
     "v2v_risk_model": {
       "model_name": "v2v_risk_model",
@@ -64,7 +64,7 @@
         "sender_speed_kmh": 0.0095,
         "heading_difference_deg": 0.0094
       },
-      "trained_at": "2026-08-19T22:36:46.738537"
+      "trained_at": "2026-08-22T19:00:43.948280"
     },
     "pedestrian_risk_model": {
       "model_name": "pedestrian_risk_model",
@@ -93,7 +93,7 @@
         "vehicle_distance_m": 0.0266,
         "road_width_m": 0.0037
       },
-      "trained_at": "2026-08-19T22:36:47.115718"
+      "trained_at": "2026-08-22T19:00:44.314180"
     },
     "hotspot_model": {
       "model_name": "hotspot_model",
@@ -124,7 +124,7 @@
         "hour": 0.0361,
         "road_condition_score": 0.0174
       },
-      "trained_at": "2026-08-19T22:36:47.857307"
+      "trained_at": "2026-08-22T19:00:44.980411"
     },
     "traffic_prediction_model": {
       "model_name": "traffic_prediction_model",
@@ -150,7 +150,7 @@
         "pedestrian_density": 0.119,
         "road_condition": 0.0372
       },
-      "trained_at": "2026-08-19T22:36:49.427244"
+      "trained_at": "2026-08-22T19:00:46.587688"
     },
     "emergency_priority_model": {
       "model_name": "emergency_priority_model",
@@ -173,7 +173,7 @@
         "distance_to_dest_km": 0.1454,
         "traffic_density": 0.1307
       },
-      "trained_at": "2026-08-19T22:36:49.631288"
+      "trained_at": "2026-08-22T19:00:46.786123"
     },
     "multimodal_model": {
       "model_name": "multimodal_model",
@@ -200,7 +200,63 @@
         "road_condition_score": 0.0017,
         "emergency_vehicle_present": 0.0013
       },
-      "trained_at": "2026-08-19T22:36:51.415381"
+      "trained_at": "2026-08-22T19:00:48.532228"
+    },
+    "pothole_model": {
+      "model_name": "pothole_model",
+      "version": "pot-v1",
+      "algorithm": "RandomForestClassifier",
+      "accuracy": 0.997,
+      "f1_score": 0.997,
+      "test_samples": 2000,
+      "features": [
+        "pothole_depth_cm",
+        "pothole_width_cm",
+        "surface_area_sqm",
+        "road_roughness_iri",
+        "vehicle_vibration_g",
+        "approaching_speed_kmh",
+        "dashcam_detection_confidence"
+      ],
+      "feature_importance": {
+        "pothole_depth_cm": 0.2681,
+        "vehicle_vibration_g": 0.2506,
+        "pothole_width_cm": 0.2204,
+        "surface_area_sqm": 0.2127,
+        "approaching_speed_kmh": 0.017,
+        "dashcam_detection_confidence": 0.0159,
+        "road_roughness_iri": 0.0153
+      },
+      "trained_at": "2026-08-22T19:00:48.899875"
+    },
+    "secondary_collision_model": {
+      "model_name": "secondary_collision_model",
+      "version": "sec-v1",
+      "algorithm": "RandomForestClassifier",
+      "accuracy": 0.9475,
+      "f1_score": 0.9469,
+      "test_samples": 2000,
+      "features": [
+        "lead_deceleration_mps2",
+        "approaching_speed_kmh",
+        "inter_vehicle_distance_m",
+        "time_to_collision_sec",
+        "v2v_warning_latency_ms",
+        "driver_reaction_time_sec",
+        "road_friction_coeff",
+        "traffic_density"
+      ],
+      "feature_importance": {
+        "lead_deceleration_mps2": 0.2951,
+        "time_to_collision_sec": 0.2948,
+        "inter_vehicle_distance_m": 0.1695,
+        "approaching_speed_kmh": 0.1014,
+        "traffic_density": 0.0778,
+        "v2v_warning_latency_ms": 0.022,
+        "driver_reaction_time_sec": 0.0218,
+        "road_friction_coeff": 0.0176
+      },
+      "trained_at": "2026-08-22T19:00:49.510936"
     }
   }
 }

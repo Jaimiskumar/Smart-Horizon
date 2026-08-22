@@ -38,14 +38,16 @@ import {
   SlidersHorizontal,
   FileText,
   PieChart,
-  Navigation
+  Navigation,
+  Camera
 } from 'lucide-react';
+import ConnectedVehicleDashboard from '../connected-vehicle/ConnectedVehicleDashboard';
 
 export default function V2VSafetyCenter() {
   // Communication Mode (DSRC vs C-V2V)
   const [commMode, setCommMode] = useState('DSRC');
   const [selectedVehicle, setSelectedVehicle] = useState('VEH-021');
-  const [activeTab, setActiveTab] = useState('simulation'); // 'simulation' | 'models' | 'hotspots' | 'trace'
+  const [activeTab, setActiveTab] = useState('connected-vehicle'); // 'connected-vehicle' | 'simulation' | 'models' | 'hotspots' | 'trace'
 
   // Live Simulated State
   const [vehicles, setVehicles] = useState([
@@ -371,7 +373,16 @@ export default function V2VSafetyCenter() {
       </div>
 
       {/* ── TABS NAVIGATION ── */}
-      <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
+      <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 pb-2">
+        <button
+          onClick={() => setActiveTab('connected-vehicle')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            activeTab === 'connected-vehicle' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          <Camera className="w-4 h-4" />
+          🚗 Connected Vehicle & Dashcam AI Hub
+        </button>
         <button
           onClick={() => setActiveTab('simulation')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
@@ -388,7 +399,7 @@ export default function V2VSafetyCenter() {
           }`}
         >
           <Database className="w-4 h-4" />
-          📊 AI Data & Models Explorer ({modelsStatus?.models?.length || 7} Loaded)
+          📊 AI Data & Models Explorer ({modelsStatus?.models?.length || 9} Loaded)
         </button>
         <button
           onClick={() => setActiveTab('hotspots')}
@@ -409,6 +420,11 @@ export default function V2VSafetyCenter() {
           Live 12-Agent Trace & Socket Stream
         </button>
       </div>
+
+      {/* ── TAB 0: CONNECTED VEHICLE DASHBOARD & DASHCAM AI ── */}
+      {activeTab === 'connected-vehicle' && (
+        <ConnectedVehicleDashboard />
+      )}
 
       {/* ── TAB 1: V2V SIMULATION & SECONDARY RADAR ── */}
       {activeTab === 'simulation' && (

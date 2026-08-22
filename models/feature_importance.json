@@ -65,5 +65,24 @@
     "noise_db": 0.0023,
     "road_condition_score": 0.0017,
     "emergency_vehicle_present": 0.0013
+  },
+  "pothole_model": {
+    "pothole_depth_cm": 0.2681,
+    "vehicle_vibration_g": 0.2506,
+    "pothole_width_cm": 0.2204,
+    "surface_area_sqm": 0.2127,
+    "approaching_speed_kmh": 0.017,
+    "dashcam_detection_confidence": 0.0159,
+    "road_roughness_iri": 0.0153
+  },
+  "secondary_collision_model": {
+    "lead_deceleration_mps2": 0.2951,
+    "time_to_collision_sec": 0.2948,
+    "inter_vehicle_distance_m": 0.1695,
+    "approaching_speed_kmh": 0.1014,
+    "traffic_density": 0.0778,
+    "v2v_warning_latency_ms": 0.022,
+    "driver_reaction_time_sec": 0.0218,
+    "road_friction_coeff": 0.0176
   }
 }

@@ -382,6 +382,102 @@ def train_multimodal_model():
     return metrics
 
 # ==============================================================================
+# 8. POTHOLE SEVERITY & INFRASTRUCTURE MODEL
+# ==============================================================================
+def train_pothole_model():
+    print("\n🕳️ Training Pothole Severity & Road Defect Model...")
+    df = pd.read_csv(os.path.join(DATA_DIR, 'potholes', 'potholes_synthetic.csv'))
+
+    features = [
+        'pothole_depth_cm', 'pothole_width_cm', 'surface_area_sqm',
+        'road_roughness_iri', 'vehicle_vibration_g', 'approaching_speed_kmh',
+        'dashcam_detection_confidence'
+    ]
+    target = 'severity'
+
+    X = df[features]
+    y = df[target]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=RANDOM_SEED, stratify=y)
+
+    model = RandomForestClassifier(n_estimators=100, max_depth=12, random_state=RANDOM_SEED, class_weight='balanced')
+    model.fit(X_train, y_train)
+
+    preds = model.predict(X_test)
+    acc = accuracy_score(y_test, preds)
+    f1 = f1_score(y_test, preds, average='weighted')
+
+    model_path = os.path.join(MODELS_DIR, 'pothole_model.joblib')
+    version_path = os.path.join(MODELS_DIR, 'pothole_model_v1.joblib')
+    joblib.dump(model, model_path)
+    joblib.dump(model, version_path)
+
+    importances = dict(zip(features, [round(float(v), 4) for v in model.feature_importances_]))
+    sorted_importances = dict(sorted(importances.items(), key=lambda item: item[1], reverse=True))
+
+    metrics = {
+        'model_name': 'pothole_model',
+        'version': 'pot-v1',
+        'algorithm': 'RandomForestClassifier',
+        'accuracy': round(float(acc), 4),
+        'f1_score': round(float(f1), 4),
+        'test_samples': len(y_test),
+        'features': features,
+        'feature_importance': sorted_importances,
+        'trained_at': datetime.now().isoformat()
+    }
+    print(f"✅ Pothole Severity Model trained | Test Accuracy: {acc*100:.2f}% | F1: {f1*100:.2f}%")
+    return metrics
+
+# ==============================================================================
+# 9. SECONDARY COLLISION RISK MODEL
+# ==============================================================================
+def train_secondary_collision_model():
+    print("\n💥 Training Secondary Collision Risk Assessment Model...")
+    df = pd.read_csv(os.path.join(DATA_DIR, 'secondary_collision', 'secondary_collision_synthetic.csv'))
+
+    features = [
+        'lead_deceleration_mps2', 'approaching_speed_kmh', 'inter_vehicle_distance_m',
+        'time_to_collision_sec', 'v2v_warning_latency_ms', 'driver_reaction_time_sec',
+        'road_friction_coeff', 'traffic_density'
+    ]
+    target = 'secondary_collision_risk'
+
+    X = df[features]
+    y = df[target]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=RANDOM_SEED, stratify=y)
+
+    model = RandomForestClassifier(n_estimators=100, max_depth=12, random_state=RANDOM_SEED, class_weight='balanced')
+    model.fit(X_train, y_train)
+
+    preds = model.predict(X_test)
+    acc = accuracy_score(y_test, preds)
+    f1 = f1_score(y_test, preds, average='weighted')
+
+    model_path = os.path.join(MODELS_DIR, 'secondary_collision_model.joblib')
+    version_path = os.path.join(MODELS_DIR, 'secondary_collision_model_v1.joblib')
+    joblib.dump(model, model_path)
+    joblib.dump(model, version_path)
+
+    importances = dict(zip(features, [round(float(v), 4) for v in model.feature_importances_]))
+    sorted_importances = dict(sorted(importances.items(), key=lambda item: item[1], reverse=True))
+
+    metrics = {
+        'model_name': 'secondary_collision_model',
+        'version': 'sec-v1',
+        'algorithm': 'RandomForestClassifier',
+        'accuracy': round(float(acc), 4),
+        'f1_score': round(float(f1), 4),
+        'test_samples': len(y_test),
+        'features': features,
+        'feature_importance': sorted_importances,
+        'trained_at': datetime.now().isoformat()
+    }
+    print(f"✅ Secondary Collision Model trained | Test Accuracy: {acc*100:.2f}% | F1: {f1*100:.2f}%")
+    return metrics
+
+# ==============================================================================
 # PIPELINE RUNNER & METADATA SAVE
 # ==============================================================================
 def train_all_models():
@@ -396,6 +492,8 @@ def train_all_models():
     pred_m = train_traffic_prediction_model()
     em_m = train_emergency_model()
     mm_m = train_multimodal_model()
+    pot_m = train_pothole_model()
+    sec_m = train_secondary_collision_model()
 
     all_metrics = {
         'dataset_version': 'v1.0-synthetic',
@@ -409,7 +507,9 @@ def train_all_models():
             'hotspot_model': hot_m,
             'traffic_prediction_model': pred_m,
             'emergency_priority_model': em_m,
-            'multimodal_model': mm_m
+            'multimodal_model': mm_m,
+            'pothole_model': pot_m,
+            'secondary_collision_model': sec_m
         }
     }
 
@@ -427,7 +527,7 @@ def train_all_models():
         'dataset_type': 'synthetic',
         'dataset_version': 'v1.0',
         'random_seed': RANDOM_SEED,
-        'total_synthetic_records': 94000,
+        'total_synthetic_records': 114000,
         'training_timestamp': datetime.now().isoformat(),
         'bengaluru_zones_count': 12,
         'models_trained': len(all_metrics['models'])

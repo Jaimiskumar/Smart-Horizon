@@ -26,7 +26,7 @@ export default function AdminDashboard({ user, onLogout }) {
   }, [location]);
 
   const tabs = [
-    { id: 'v2v-safety', label: '🚗 V2V & Safety AI', icon: Radio, path: '/admin/v2v-safety', color: 'blue' },
+    { id: 'v2v-safety', label: '🚗 Connected Vehicle & Safety', icon: Radio, path: '/admin/v2v-safety', color: 'blue' },
     { id: 'bangalore-map', label: 'Bangalore Traffic Map', icon: MapIcon, path: '/admin/bangalore-map', color: 'blue' },
     { id: 'agents', label: 'AI Agent Center', icon: Bot, path: '/admin/agents', color: 'indigo' },
     { id: 'traffic', label: 'Traffic Monitoring', icon: Car, path: '/admin/traffic', color: 'blue' },
@@ -135,6 +135,7 @@ export default function AdminDashboard({ user, onLogout }) {
             <Routes>
               <Route path="/" element={<V2VSafetyCenter />} />
               <Route path="/v2v-safety" element={<V2VSafetyCenter />} />
+              <Route path="/connected-vehicle" element={<V2VSafetyCenter />} />
               <Route path="/bangalore-map" element={<BangaloreTrafficMap />} />
               <Route path="/traffic" element={<TrafficMonitoring />} />
               <Route path="/parking" element={<ParkingManagement />} />

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-19T22:36:43.752098",
+  "timestamp": "2026-08-22T19:00:02.735975",
   "datasets": [
     {
       "name": "Traffic",
@@ -69,6 +69,24 @@
       "path": "/Users/jaimisgondaliya/Downloads/Smart-traffic-and-parking-management-system/data/synthetic/combined/multimodal_traffic_dataset.csv",
       "rows": 12000,
       "columns": 14,
+      "missing_values": 0,
+      "duplicates": 0,
+      "status": "PASSED"
+    },
+    {
+      "name": "Potholes & Hazards",
+      "path": "/Users/jaimisgondaliya/Downloads/Smart-traffic-and-parking-management-system/data/synthetic/potholes/potholes_synthetic.csv",
+      "rows": 10000,
+      "columns": 22,
+      "missing_values": 0,
+      "duplicates": 0,
+      "status": "PASSED"
+    },
+    {
+      "name": "Secondary Collision",
+      "path": "/Users/jaimisgondaliya/Downloads/Smart-traffic-and-parking-management-system/data/synthetic/secondary_collision/secondary_collision_synthetic.csv",
+      "rows": 10000,
+      "columns": 16,
       "missing_values": 0,
       "duplicates": 0,
       "status": "PASSED"
